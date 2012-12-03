@@ -1,5 +1,7 @@
 # coding: utf-8
+
 import json, psycopg2
+
 fout = open('parcelcollection.json', 'w')
 conn = psycopg2.connect(database='buildingfootprints')
 cur = conn.cursor()
@@ -24,7 +26,6 @@ f = {"type":"FeatureCollection", "features":[]}
 for i in rv:
     f['features'].append({"geometry":json.loads(i[2]), "properties":{"height":float(i[1])}})
 
-fout = open('parcelcollection.json', 'w')
 fout.write(json.dumps(f))
 
 
