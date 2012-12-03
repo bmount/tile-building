@@ -8,8 +8,7 @@
   <script src=""></script>
   -->
 
-
-
+  <title>use the arrows , and . </title>
 </head>
 
 <body>
@@ -21,15 +20,12 @@ var home = [-122.412, 37.761012]
 //var TILE_URL = "http://tile.stamen.com/toner-labels/"
 var TILE_URL = "http://tile.stamen.com/toner/"
 
-var hayPlanet = 6.371e6 * Math.PI
-
 var proj = d3.geo.mercator()
     .center(home)
     .scale(Math.pow(2,27));
 
-var width = window.innerWidth*5,
-    height = window.innerHeight*5,
-    prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
+var width = window.innerWidth*3,
+    height = window.innerHeight*3
 
 var tile = d3.geo.tile()
     .size([width, height]);
@@ -46,8 +42,10 @@ var layer = map.append("div")
     .attr("class", "layer");
 
 camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
-camera.position.set(width/2, -height/2, 1000);
+camera.position.set(width/2, -height/2, 500); // gen
+camera.position.set(1180, -1500, 300);
 camera.target = new THREE.Vector3(0, 0, 0);
+camera.rotation.x += Math.PI/4
 renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -60,16 +58,19 @@ light.shadowCameraVisible = true;
 light.position.set(50000,5000,50000);
 scene.add(light);
 
+var light2 = new THREE.PointLight(0xffffff);
+light2.shadowCameraVisible = true;
+light2.position.set(-50000,5000,50000);
+scene.add(light2);
+
 var tileTextures = [];
 
 function floorTile (url, d, t) {
-  //set mesh
-  //console.log(d)
   var tc = THREE.ImageUtils.loadTexture( url, function (evt) {
     renderer.render(scene, camera);
   })
-  var material = new THREE.MeshBasicMaterial({
-  //var material = new THREE.MeshLambertMaterial({
+  //var material = new THREE.MeshBasicMaterial({
+  var material = new THREE.MeshLambertMaterial({
     map: tc, color: 0xffffff })
   var plane = new THREE.Mesh(new THREE.PlaneGeometry(256, 256), material);
   plane.position.x = 128 + (tile().translate[0] + d[0])*256
@@ -80,6 +81,10 @@ function floorTile (url, d, t) {
 
 function v2d(x,y,z) {
   return new THREE.Vector2(x,y);
+}
+
+function v(x,y,z) {
+  return new THREE.Vector3(x,y,z);
 }
 
 var meshes = []; // for later rotations etc
@@ -101,24 +106,20 @@ d3.json(jsonData, function (err, footprints) {
     var footprintshape2d = new THREE.Shape(floorGeom)
     var footprintExtrudable = new THREE.ExtrudeGeometry(footprintshape2d, {
               // height given + constant by inspection
-              amount: e0.properties.height*1.5, height: 0, curveSegments: 3,
-              bevelThickness: 1, bevelSize: 2, bevelEnabled: false,
+              amount: e0.properties.height*1.3, height: 0,
+              bevelEnabled: false,
               material: 0, extrudeMaterial: 1
             })
-  var frontMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, wireframe: false } );
+  var frontMaterial = new THREE.MeshLambertMaterial( { color: 0x3f3f3f, wireframe: false } );
 	var sideMaterial = new THREE.MeshLambertMaterial( { color: 0xb86b00, wireframe: false } );
   var materialArray = [ frontMaterial, sideMaterial ];
 	footprintExtrudable.materials = materialArray;
-  isla = new THREE.Mesh( footprintExtrudable, new THREE.MeshFaceMaterial() );
-  //isla.rotation.x = -Math.PI/2*.82;
-  scene.add(isla);
-  meshes.push(isla)
-  renderer.render( scene, camera );
+  var bldg = new THREE.Mesh( footprintExtrudable, new THREE.MeshFaceMaterial() );
+  scene.add(bldg);
+  meshes.push(bldg)
   })
 })
-  renderer.render( scene, camera );
 }
-
 
 loadBuildings("parcelcollection_unprojected.json")
 
@@ -126,11 +127,6 @@ container = document.createElement('div');
 document.body.appendChild(container);
 container.appendChild(renderer.domElement);
 renderer.render(scene, camera);
-
-function animate () {
-  renderer.render(scene, camera);
-}
-
 
 zoomed();
 
@@ -141,7 +137,6 @@ function zoomed() {
       ();
 
   var image = layer
-      .style(prefix + "transform", matrix3d(tiles.scale, tiles.translate))
     .selectAll(".tile")
       .data(tiles, function(d) { return d; });
 
@@ -152,27 +147,14 @@ function zoomed() {
       .attr("class", "tile")
       .attr("hidden", function(d) {
         floorTile(TILE_URL + d[2] + "/" + d[0] + "/" + d[1] + ".png", d, tile);
-        return true;
+        return "";
       })
-      //.style("left", function(d) { return (d[0] << 8) + "px"; })
-      //.style("top", function(d) { return (d[1] << 8) + "px"; });
 }
 
-function matrix3d(scale, translate) {
-  var k = scale / 256, r = scale % 1 ? Number : Math.round;
-  return "matrix3d(" + [k, 0, 0, 0, 0, k, 0, 0, 0, 0, k, 0, r(translate[0] * scale), r(translate[1] * scale), 0, 1 ] + ")";
+function animate() {
+  renderer.render(scene, camera);
+  requestAnimationFrame( animate );
 }
-
-function prefixMatch(p) {
-  var i = -1, n = p.length, s = document.body.style;
-  while (++i < n) if (p[i] + "Transform" in s) return "-" + p[i].toLowerCase() + "-";
-  return "";
-}
-
-//function animate() {
-//  renderer.render(scene, camera);
-//  requestAnimationFrame( animate );
-//}
 animate()
 
 // console.log type position debug
@@ -182,7 +164,6 @@ function keydown(event){
 	var delta = 16;
 	event = event || window.event;
 	var keycode = event.keyCode;
-    console.log(keycode)
 	switch(keycode){
 		case 37 : //left arrow
 			event.preventDefault();
@@ -190,15 +171,15 @@ function keydown(event){
 			break;
 		case 38 : // up arrow
 			event.preventDefault();
-			camera.position.y -= delta;
+			camera.position.y += delta;
 			break;
 		case 39 : // right arrow
-			event.preventDefault();
+			//event.preventDefault();
 			camera.position.x += delta;
 			break;
 		case 40 : //down arrow
 			event.preventDefault();
-			camera.position.y += delta;
+			camera.position.y -= delta;
 			break;
 		case 190 : //
 			event.preventDefault();
@@ -266,6 +247,7 @@ function keydown(event){
   //console.log(dsumx, dsumy)
 	camera.updateProjectionMatrix();
   renderer.render( scene, camera );
+  zoomed()
 }
 
 document.addEventListener('keydown',keydown,false);
