@@ -4,6 +4,7 @@
   <script src="three.min.js"></script>
   <script src="d3.v3.min.js"></script>
   <script src="tile.js"></script>
+  <script src="tileutil.js"></script>
   <!--
   <script src=""></script>
   -->
@@ -19,6 +20,7 @@ var home = [-122.412, 37.761012]
 //var home = [-122.410312, 37.761012]
 //var TILE_URL = "http://tile.stamen.com/toner-labels/"
 var TILE_URL = "http://tile.stamen.com/toner/"
+var BLDG_URL = "../../_design/bldgs/_view/bldgs?bbox={B}"
 
 var proj = d3.geo.mercator()
     .center(home)
@@ -87,10 +89,12 @@ function v(x,y,z) {
   return new THREE.Vector3(x,y,z);
 }
 
+var bbox = tileUtil().unprojected
+
 var meshes = []; // for later rotations etc
 
-function loadBuildings (jsonData) {
-d3.json(jsonData, function (err, footprints) {
+function loadBuildings (jsonUrl) {
+d3.json(jsonUrl, function (err, footprints) {
   if (err) { console.log(err); return; }
   var footprints = footprints.features
   var floorGeom;
@@ -121,7 +125,7 @@ d3.json(jsonData, function (err, footprints) {
 })
 }
 
-loadBuildings("parcelcollection_unprojected.json")
+//loadBuildings("parcelcollection_unprojected.json")
 
 container = document.createElement('div');
 document.body.appendChild(container);
@@ -146,7 +150,9 @@ function zoomed() {
   image.enter().append("img")
       .attr("class", "tile")
       .attr("hidden", function(d) {
+        var b = bbox(d[0], d[1], d[2]);
         floorTile(TILE_URL + d[2] + "/" + d[0] + "/" + d[1] + ".png", d, tile);
+        loadBuildings(BLDG_URL.replace(/{B}/, b.toString()))
         return "";
       })
 }
