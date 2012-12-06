@@ -1,12 +1,14 @@
 ;
 var viewDv;
 
-function unshorten (tile, scene) {
+function unshorten (tile, scene, coords) {
   var tile = tile
-    , scene = scene || function () {}
-  if (!scene.add) scene.add = function () { console.log('err', arguments); };
+    , coords = coords;
 
-  function uncollect (buf, coords) {
+  var offsetX = (tile().translate[0] + coords[0])*256
+    , offsetY = (tile().translate[1] + coords[1])*(-256);
+
+  function uncollect (buf) {
     var fullLength = buf.byteLength,
         drawn = 0,
         ukbtype, nsubgeoms, view, x, y, px, py,
@@ -17,14 +19,14 @@ function unshorten (tile, scene) {
         nsubgeoms = dv.getUint32(drawn + 4, true);
       if (ukbtype === 2) {
         if (nsubgeoms > 0) {
-          drawn = line( dv, (drawn+4), coords );
+          drawn = line( dv, (drawn+4) );
         } else {
           drawn += 12;
         }
       }
       else if (ukbtype === 3) {
         //drawn = line ( dv, drawn+4, ctx );
-        drawn = polygon ( dv, drawn+4, coords );
+        drawn = polygon ( dv, drawn+4 );
       }
       else {
         ukbtype = 0;
@@ -34,11 +36,16 @@ function unshorten (tile, scene) {
     return true;
   }
 
+  function scaleVertical (h) {
+    // extrusion height as f(zoom)
+    return; // TODO
+  }
+
   function printUp (floorGeom, h) {
     var h = h || 10
       , footprintshape2d = new THREE.Shape(floorGeom)
       , footprintExtrudable = new THREE.ExtrudeGeometry(footprintshape2d, {
-                amount: h, height: 0,
+                amount: h*.06, height: 0,
                 bevelEnabled: false,
                 material: 0, extrudeMaterial: 1
               })
@@ -50,8 +57,7 @@ function unshorten (tile, scene) {
     scene.add(bldg);
   }
 
-  function polygon (dv, idx, coords) {
-    
+  function polygon (dv, idx) {
     var drawn = 0,
         idx = idx,
         npts = dv.getUint32(idx, true),
@@ -64,18 +70,16 @@ function unshorten (tile, scene) {
     var floorGeom = []
       , x
       , y
-      , offsetX = (tile().translate[0] + coords[0])*256
-      , offsetY = (tile().translate[1] + coords[1])*(-256); 
 
     floorGeom.push(
-        v2d(dv.getInt16(idx, true)/100 + offsetX, 
+        v2d(dv.getInt16(idx, true)/100 + offsetX,
             //256 - dv.getInt16( idx + 2, true)/100 + offsetY )
             dv.getInt16( idx + 2, true)/100 + offsetY )
         );
     idx += 4;
     if (npts === 2) {
       floorGeom.push(
-          v2d(dv.getInt16(idx, true)/100 + offsetX, 
+          v2d(dv.getInt16(idx, true)/100 + offsetX,
               //256 - dv.getInt16( idx + 2, true)/100 + offsetY )
               dv.getInt16( idx + 2, true)/100 + offsetY )
           );
@@ -87,7 +91,7 @@ function unshorten (tile, scene) {
     }
     for (var i = 4; i < 4*(npts-1); i += 4) {
       floorGeom.push(
-          v2d(dv.getInt16(idx + i, true)/100 + offsetX, 
+          v2d(dv.getInt16(idx + i, true)/100 + offsetX,
             //256 - dv.getInt16( idx + i + 2, true)/100 + offsetY )
             dv.getInt16( idx + i + 2, true)/100 + offsetY )
           );

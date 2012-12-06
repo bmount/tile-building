@@ -19,8 +19,8 @@
 
 var home = [-122.412, 37.761012]
 //var home = [-122.410312, 37.761012]
-var TILE_URL = "http://tile.stamen.com/toner-labels/"
-//var TILE_URL = "http://tile.stamen.com/toner/"
+//var TILE_URL = "http://tile.stamen.com/toner-labels/"
+var TILE_URL = "http://tile.stamen.com/toner/"
 var BLDG_URL = "../../_design/bldgs/_view/bldgs?bbox={B}"
 var BIN_URL = "/_canvasback/tms/"
 
@@ -47,7 +47,7 @@ var layer = map.append("div")
 
 camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
 camera.position.set(width/2, -height/2, 500); // gen
-camera.position.set(80, -1500, 300);
+camera.position.set(800, -500, 300);
 camera.target = new THREE.Vector3(0, 0, 0);
 camera.rotation.x += Math.PI/4
 renderer = new THREE.WebGLRenderer();
@@ -78,7 +78,7 @@ function loadShorts (t, callback) {
         if (buf.response === null) {
           return;
         } else {
-          callback(buf.response, t);
+          callback(buf.response);
           //console.log(buf.response.byteLength);
           //d3.select(canvas).attr("class", "tile")
         }
@@ -177,7 +177,7 @@ function zoomed() {
       .attr("hidden", function(d) {
         //var b = bbox(d[0], d[1], d[2]);
         floorTile(TILE_URL + d[2] + "/" + d[0] + "/" + d[1] + ".png", d, tile);
-        var printer = unshorten(tile, scene)
+        var printer = unshorten(tile, scene, d) // not reusable between tiles
         loadShorts(d, printer)
         //loadBuildings(BLDG_URL.replace(/{B}/, b.toString()))
         return "";
