@@ -5,6 +5,7 @@
   <script src="d3.v3.min.js"></script>
   <script src="tile.js"></script>
   <script src="tileutil.js"></script>
+  <script src="binary_renderer.js"></script>
   <!--
   <script src=""></script>
   -->
@@ -18,16 +19,17 @@
 
 var home = [-122.412, 37.761012]
 //var home = [-122.410312, 37.761012]
-//var TILE_URL = "http://tile.stamen.com/toner-labels/"
-var TILE_URL = "http://tile.stamen.com/toner/"
+var TILE_URL = "http://tile.stamen.com/toner-labels/"
+//var TILE_URL = "http://tile.stamen.com/toner/"
 var BLDG_URL = "../../_design/bldgs/_view/bldgs?bbox={B}"
+var BIN_URL = "/_canvasback/tms/"
 
 var proj = d3.geo.mercator()
     .center(home)
-    .scale(Math.pow(2,27));
+    .scale(Math.pow(2,25));
 
-var width = window.innerWidth*3,
-    height = window.innerHeight*3
+var width = window.innerWidth,
+    height = window.innerHeight
 
 var tile = d3.geo.tile()
     .size([width, height]);
@@ -45,7 +47,7 @@ var layer = map.append("div")
 
 camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
 camera.position.set(width/2, -height/2, 500); // gen
-camera.position.set(1180, -1500, 300);
+camera.position.set(80, -1500, 300);
 camera.target = new THREE.Vector3(0, 0, 0);
 camera.rotation.x += Math.PI/4
 renderer = new THREE.WebGLRenderer();
@@ -64,6 +66,29 @@ var light2 = new THREE.PointLight(0xffffff);
 light2.shadowCameraVisible = true;
 light2.position.set(-50000,5000,50000);
 scene.add(light2);
+
+function loadShorts (t, callback) {
+  var uri = BIN_URL + '/' + t[2] + '/' + t[0] + '/' + (t[1]-1) + '.ukb'
+    , buf = new XMLHttpRequest;
+  buf.open("GET", uri, true);
+  buf.responseType = 'arraybuffer'
+  buf.onreadystatechange = function () {
+    if (buf.readyState === 4) {
+      if (buf.status === 200) {
+        if (buf.response === null) {
+          return;
+        } else {
+          callback(buf.response, t);
+          //console.log(buf.response.byteLength);
+          //d3.select(canvas).attr("class", "tile")
+        }
+      }
+    }
+  }
+  buf.onerror = function (err) { console.log(err); };
+  buf.send(null)
+  return buf
+}
 
 var tileTextures = [];
 
@@ -150,9 +175,11 @@ function zoomed() {
   image.enter().append("img")
       .attr("class", "tile")
       .attr("hidden", function(d) {
-        var b = bbox(d[0], d[1], d[2]);
+        //var b = bbox(d[0], d[1], d[2]);
         floorTile(TILE_URL + d[2] + "/" + d[0] + "/" + d[1] + ".png", d, tile);
-        loadBuildings(BLDG_URL.replace(/{B}/, b.toString()))
+        var printer = unshorten(tile, scene)
+        loadShorts(d, printer)
+        //loadBuildings(BLDG_URL.replace(/{B}/, b.toString()))
         return "";
       })
 }
