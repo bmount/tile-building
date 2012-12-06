@@ -43,7 +43,8 @@ function unshorten (tile, scene, coords) {
 
   function printUp (floorGeom, h) {
     var h = h || 10
-      , footprintshape2d = new THREE.Shape(floorGeom)
+      , flr = floorGeom
+      , footprintshape2d = new THREE.Shape(flr)
       , footprintExtrudable = new THREE.ExtrudeGeometry(footprintshape2d, {
                 amount: h*.06, height: 0,
                 bevelEnabled: false,
@@ -67,20 +68,18 @@ function unshorten (tile, scene, coords) {
       return idx;
     }
 
+    idx += 4;
     var floorGeom = []
-      , x
-      , y
+      , x = dv.getInt16(idx, true)/100 + offsetX
+      , y = dv.getInt16( idx + 2, true)/100 + offsetY
 
     floorGeom.push(
         v2d(dv.getInt16(idx, true)/100 + offsetX,
-            //256 - dv.getInt16( idx + 2, true)/100 + offsetY )
             dv.getInt16( idx + 2, true)/100 + offsetY )
         );
-    idx += 4;
     if (npts === 2) {
       floorGeom.push(
           v2d(dv.getInt16(idx, true)/100 + offsetX,
-              //256 - dv.getInt16( idx + 2, true)/100 + offsetY )
               dv.getInt16( idx + 2, true)/100 + offsetY )
           );
       try {
@@ -92,7 +91,6 @@ function unshorten (tile, scene, coords) {
     for (var i = 4; i < 4*(npts-1); i += 4) {
       floorGeom.push(
           v2d(dv.getInt16(idx + i, true)/100 + offsetX,
-            //256 - dv.getInt16( idx + i + 2, true)/100 + offsetY )
             dv.getInt16( idx + i + 2, true)/100 + offsetY )
           );
     }
@@ -104,6 +102,7 @@ function unshorten (tile, scene, coords) {
   }
 
   function line (dv, idx, tile) {
+    // unused in building thing see wkmap/onlyd3 for working
     var drawn = 0,
         idx = idx,
         npts = dv.getUint32(idx, true),

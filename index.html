@@ -26,7 +26,7 @@ var BIN_URL = "/_canvasback/tms/"
 
 var proj = d3.geo.mercator()
     .center(home)
-    .scale(Math.pow(2,25));
+    .scale(Math.pow(2,24));
 
 var width = window.innerWidth,
     height = window.innerHeight
@@ -68,7 +68,7 @@ light2.position.set(-50000,5000,50000);
 scene.add(light2);
 
 function loadShorts (t, callback) {
-  var uri = BIN_URL + '/' + t[2] + '/' + t[0] + '/' + (t[1]-1) + '.ukb'
+  var uri = BIN_URL + t[2] + '/' + t[0] + '/' + (t[1]-1) + '.ukb'
     , buf = new XMLHttpRequest;
   buf.open("GET", uri, true);
   buf.responseType = 'arraybuffer'
