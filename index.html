@@ -21,15 +21,16 @@ var home = [-122.412, 37.761012]
 //var home = [-122.410312, 37.761012]
 //var TILE_URL = "http://tile.stamen.com/toner-labels/"
 var TILE_URL = "http://tile.stamen.com/toner/"
+//var TILE_URL = "http://tile.stamen.com/watercolor/"
 var BLDG_URL = "../../_design/bldgs/_view/bldgs?bbox={B}"
 var BIN_URL = "/_canvasback/tms/"
 
 var proj = d3.geo.mercator()
     .center(home)
-    .scale(Math.pow(2,24));
+    .scale(Math.pow(2,26));
 
-var width = window.innerWidth,
-    height = window.innerHeight
+var width = window.innerWidth*2,
+    height = window.innerHeight*2
 
 var tile = d3.geo.tile()
     .size([width, height]);
@@ -40,7 +41,7 @@ var zoom = d3.behavior.zoom()
     .on("zoom", zoomed);
 
 var map = d3.select("body")
-//    .call(zoom);
+    .call(zoom);
 
 var layer = map.append("div")
     .attr("class", "layer");
@@ -66,6 +67,8 @@ var light2 = new THREE.PointLight(0xffffff);
 light2.shadowCameraVisible = true;
 light2.position.set(-50000,5000,50000);
 scene.add(light2);
+
+heightGuess = { "17": 0 }
 
 function loadShorts (t, callback) {
   var uri = BIN_URL + t[2] + '/' + t[0] + '/' + (t[1]-1) + '.ukb'
@@ -104,6 +107,7 @@ function floorTile (url, d, t) {
   plane.position.y = -128 + (tile().translate[1] + d[1])*(-256)
   scene.add(plane);
   tileTextures.push(plane)
+  renderer.render(scene, camera);
 }
 
 function v2d(x,y,z) {
@@ -179,16 +183,20 @@ function zoomed() {
         floorTile(TILE_URL + d[2] + "/" + d[0] + "/" + d[1] + ".png", d, tile);
         var printer = unshorten(tile, scene, d) // not reusable between tiles
         loadShorts(d, printer)
+        camera.updateProjectionMatrix();
+        renderer.render(scene, camera);
         //loadBuildings(BLDG_URL.replace(/{B}/, b.toString()))
         return "";
       })
 }
 
+
 function animate() {
-  renderer.render(scene, camera);
   requestAnimationFrame( animate );
+  renderer.render(scene, camera);
 }
 animate()
+
 
 // console.log type position debug
 // var dsumx = 0, dsumy=0;

@@ -1,6 +1,3 @@
-;
-var viewDv;
-
 function unshorten (tile, scene, coords) {
   var tile = tile
     , coords = coords;
@@ -13,7 +10,6 @@ function unshorten (tile, scene, coords) {
         drawn = 0,
         ukbtype, nsubgeoms, view, x, y, px, py,
       dv = new DataView ( buf, 0, fullLength );
-      viewDv = new DataView ( buf, 0, fullLength );
     while (drawn < fullLength) {
         ukbtype = dv.getUint32(drawn, true);
         nsubgeoms = dv.getUint32(drawn + 4, true);
@@ -46,7 +42,7 @@ function unshorten (tile, scene, coords) {
       , flr = floorGeom
       , footprintshape2d = new THREE.Shape(flr)
       , footprintExtrudable = new THREE.ExtrudeGeometry(footprintshape2d, {
-                amount: h*.06, height: 0,
+                amount: h*.3, height: 0,
                 bevelEnabled: false,
                 material: 0, extrudeMaterial: 1
               })
@@ -70,17 +66,17 @@ function unshorten (tile, scene, coords) {
 
     idx += 4;
     var floorGeom = []
-      , x = dv.getInt16(idx, true)/100 + offsetX
-      , y = dv.getInt16( idx + 2, true)/100 + offsetY
-
+      , x = dv.getInt16(idx, true)/10 + offsetX
+      , y = dv.getInt16( idx + 2, true)/10 + offsetY
+    console.log(x, y);
     floorGeom.push(
-        v2d(dv.getInt16(idx, true)/100 + offsetX,
-            dv.getInt16( idx + 2, true)/100 + offsetY )
+        v2d(dv.getInt16(idx, true)/10 + offsetX,
+            dv.getInt16( idx + 2, true)/10 + offsetY )
         );
     if (npts === 2) {
       floorGeom.push(
-          v2d(dv.getInt16(idx, true)/100 + offsetX,
-              dv.getInt16( idx + 2, true)/100 + offsetY )
+          v2d(dv.getInt16(idx, true)/10 + offsetX,
+              dv.getInt16( idx + 2, true)/10 + offsetY )
           );
       try {
         printUp(floorGeom, height)
@@ -90,8 +86,8 @@ function unshorten (tile, scene, coords) {
     }
     for (var i = 4; i < 4*(npts-1); i += 4) {
       floorGeom.push(
-          v2d(dv.getInt16(idx + i, true)/100 + offsetX,
-            dv.getInt16( idx + i + 2, true)/100 + offsetY )
+          v2d(dv.getInt16(idx + i, true)/10 + offsetX,
+            dv.getInt16( idx + i + 2, true)/10 + offsetY )
           );
     }
     try {
@@ -110,14 +106,14 @@ function unshorten (tile, scene, coords) {
     var dummy;
     streetrender(osmstyle, 0);
     idx += 8;
-    dummy = (dv.getInt16(idx, true)/100, 256 - dv.getInt16( idx + 2, true)/100);
+    dummy = (dv.getInt16(idx, true)/10, 256 - dv.getInt16( idx + 2, true)/10);
     idx += 4;
     if (npts === 2) {
-      dummy = (dv.getInt16(idx, true)/100, 256 - dv.getInt16( idx + 2, true)/100);
+      dummy = (dv.getInt16(idx, true)/10, 256 - dv.getInt16( idx + 2, true)/10);
       return idx + 4;
     }
     for (var i = 4; i < 4*(npts-1); i += 4) {
-      dummy = (dv.getInt16(idx + i, true)/100, 256 - dv.getInt16( idx + i + 2, true)/100);
+      dummy = (dv.getInt16(idx + i, true)/10, 256 - dv.getInt16( idx + i + 2, true)/10);
     }
     return idx + 4*(npts - 1);
   }
