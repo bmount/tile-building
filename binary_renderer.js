@@ -1,3 +1,12 @@
+
+function v2d(x,y,z) {
+  return new THREE.Vector2(x,y);
+}
+
+function v(x,y,z) {
+  return new THREE.Vector3(x,y,z);
+}
+
 function unshorten (tile, scene, coords) {
   var tile = tile
     , coords = coords;
@@ -68,7 +77,6 @@ function unshorten (tile, scene, coords) {
     var floorGeom = []
       , x = dv.getInt16(idx, true)/10 + offsetX
       , y = dv.getInt16( idx + 2, true)/10 + offsetY
-    console.log(x, y);
     floorGeom.push(
         v2d(dv.getInt16(idx, true)/10 + offsetX,
             dv.getInt16( idx + 2, true)/10 + offsetY )
