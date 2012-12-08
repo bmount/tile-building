@@ -51,7 +51,7 @@ function unshorten (tile, scene, coords) {
       , flr = floorGeom
       , footprintshape2d = new THREE.Shape(flr)
       , footprintExtrudable = new THREE.ExtrudeGeometry(footprintshape2d, {
-                amount: h*.3, height: 0,
+                amount: h*.25, height: 0,
                 bevelEnabled: false,
                 material: 0, extrudeMaterial: 1
               })
