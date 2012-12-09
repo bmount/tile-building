@@ -1,0 +1,6 @@
+[
+    { "from": "tiles/*" , "to"  : "../../*" },
+    { "from": "_ddoc/*" , "to"  : "*"},
+    { "from": "/", "to": "index.html"},
+    { "from": "/*", "to": "*"}
+]
