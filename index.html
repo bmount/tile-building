@@ -18,14 +18,18 @@
 
 .findermap {
   position: absolute;
+  margin-top: 50px;
+  margin-left: 50px;
   overflow: hidden;
 }
 
 .go {
   position: absolute;
-  margin-left: 700px;
+  margin-left: 720px;
   margin-top: 50px;
   font-size: 4em;
+  width: 150px;
+  height: 550px;
 }
 
 .finderlayer {
@@ -59,8 +63,8 @@ function findermap () {
       .center(pos0)
       .scale(Math.pow(2,23));
 
-  var width = 500,
-      height = 500,
+  var width = 650,
+      height = 550,
       prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
 
   var tile = d3.geo.tile()
@@ -126,7 +130,7 @@ var debugObj;
 d3.select("body")
     .append("button")
     .attr("class", "go")
-    .text("zoom way in")
+    .html("Z<br>O<br>O<br>M<br>")
     .on("click", function (evt) {
       finder.map.remove()
       console.log(finder);
