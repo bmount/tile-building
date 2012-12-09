@@ -202,7 +202,7 @@ scene.add(light2);
 heightGuess = { "17": 0 }
 
 function loadShorts (t, callback) {
-  var uri = BIN_URL + t[2] + '/' + t[0] + '/' + (t[1]-1) + '.ukb'
+  var uri = BIN_URL + t[2] + '/' + t[0] + '/' + t[1] + '.ukb'
     , buf = new XMLHttpRequest;
   buf.open("GET", uri, true);
   buf.responseType = 'arraybuffer'
@@ -334,26 +334,26 @@ function keydown(event){
 		case 37 : //left arrow
 			event.preventDefault();
 			camera.position.x -= delta;
-			dsumx -= delta;
-      zoom.translate( proj( [dsumx, dsumy] ));
+			//dsumx -= delta;
+      //zoom.translate( proj( [dsumx, dsumy] ));
 			break;
 		case 38 : // up arrow
 			event.preventDefault();
 			camera.position.y += delta;
-			dsumy += delta;
-      zoom.translate( proj( [dsumx, dsumy] ));
+			//dsumy += delta;
+      //zoom.translate( proj( [dsumx, dsumy] ));
 			break;
 		case 39 : // right arrow
 			//event.preventDefault();
 			camera.position.x += delta;
-			dsumx += delta;
-      zoom.translate( proj( [dsumx, dsumy] ));
+			//dsumx += delta;
+      //zoom.translate( proj( [dsumx, dsumy] ));
 			break;
 		case 40 : //down arrow
 			event.preventDefault();
 			camera.position.y -= delta;
-			dsumy -= delta;
-      zoom.translate( proj( [dsumx, dsumy] ));
+			//dsumy -= delta;
+      //zoom.translate( proj( [dsumx, dsumy] ));
 			break;
 		case 190 : //
 			event.preventDefault();
@@ -387,7 +387,7 @@ function keydown(event){
 			event.preventDefault();
 			camera.rotation.z = camera.rotation.z - Math.PI/100;
 			break;
-      /* for repositioning tiles visually with: [, ], ;, and ' keys
+      /* for repositioning tiles visually with: [, ], ;, and ' keys */
 		case 221 : // ]
 			event.preventDefault();
       tileTextures.forEach(function (t) {
@@ -416,9 +416,9 @@ function keydown(event){
       })
       dsumy-=delta;
       break;
-      */
+      /**/
 	}
-  //console.log(dsumx, dsumy)
+  console.log(dsumx, dsumy)
 	camera.updateProjectionMatrix();
   cancelAnimationFrame(animationId);
   renderer.render( scene, camera );
