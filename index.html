@@ -1,6 +1,9 @@
 <!doctype html>
 
+<html>
+
 <head>
+  <meta charset="utf-8">
   <script src="three.min.js"></script>
   <script src="d3.v3.min.js"></script>
   <script src="tile.js"></script>
@@ -10,9 +13,10 @@
   <script src=""></script>
   -->
 
-  <title>use the arrows , and . </title>
-  <style>
+  <title> sf building view</title>
+<style>
   body {
+  font-family: Helvetica;
   margin: 0;
 }
 
@@ -27,7 +31,7 @@
   position: absolute;
   margin-left: 720px;
   margin-top: 50px;
-  font-size: 4em;
+  font-size: 30px;
   width: 150px;
   height: 550px;
 }
@@ -40,6 +44,26 @@
   position: absolute;
   width: 256px;
   height: 256px;
+}
+
+#attrib {
+  position: absolute;
+  top: 610px;
+  left: 50px;
+  font-size: 10px;
+}
+
+.uifrag {
+  position: absolute;
+  z-index: 1;
+  width: 80px;
+  font-size: 14px;
+  height: 160px;
+  top: 25px;
+  background: rgba(255,255,255,.8);
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(111,111,111,1);
 }
 </style>
 </head>
@@ -130,7 +154,7 @@ var debugObj;
 d3.select("body")
     .append("button")
     .attr("class", "go")
-    .html("Z<br>O<br>O<br>M<br>")
+    .html("b<br>u<br>i<br>l<br>d<br>i<br>n<br>g<br>s")
     .on("click", function (evt) {
       finder.map.remove()
       console.log(finder);
@@ -139,6 +163,7 @@ d3.select("body")
       mid = tileUtil().unprojected.apply(null, mid)[0]
       gimmeBuildings(mid, 18)
       d3.select(this).remove()
+      setInstructions();
     })
 
 
@@ -184,13 +209,12 @@ var layer = map.append("div")
 
 camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
 camera.position.set(width/2, -height/2, 500); // gen
-camera.position.set(width/2, -800, 220);
+camera.position.set(width/2, -1000, 320);
 camera.target = new THREE.Vector3(0, 0, 0);
 camera.rotation.x += Math.PI/4
 renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
-//init scene
 scene = new THREE.Scene();
 scene.add(camera);
 
@@ -203,8 +227,6 @@ var light2 = new THREE.PointLight(0xffffff);
 light2.shadowCameraVisible = true;
 light2.position.set(-50000,5000,50000);
 scene.add(light2);
-
-heightGuess = { "17": 0 }
 
 function loadShorts (t, callback) {
   var uri = BIN_URL + t[2] + '-' + t[0] + '-' + (t[1]) + '/bldg'
@@ -287,9 +309,6 @@ d3.json(jsonUrl, function (err, footprints) {
 
 d3.select("body").append("div").node().appendChild(renderer.domElement)
 
-//container = document.createElement('div');
-//document.body.appendChild(container);
-//container.appendChild(renderer.domElement);
 renderer.render(scene, camera);
 
 zoomed();
@@ -356,11 +375,11 @@ function keydown(event){
 			camera.position.y -= delta;
       //zoom.translate( proj( [dsumx, dsumy] ));
 			break;
-		case 190 : //
+		case 85: //
 			event.preventDefault();
 			camera.position.z += delta;
 			break;
-		case 188 : //
+		case 68: // 188 : //
 			event.preventDefault();
 			camera.position.z -= delta;
 			break;
@@ -429,4 +448,30 @@ document.addEventListener('keydown',keydown,false);
 return {proj:proj}
 }
 
+var uiFrag =  "use arrows, <br>" +
+              "u - up <br>" +
+              "d - down <br>" +
+              "x-d ↺ x <br>" +
+              "z-s ↺ z <br>" +
+              "y-7 ↺ y <br><br>"
+
+function setInstructions () {
+  d3.select("#attrib").remove();
+  d3.select("body").append("div")
+    .attr("class", "uifrag").html(uiFrag)
+    .style("left", function () { return (window.innerWidth - 150) + "px" })
+    .append("button").text("save").on("click", function () {
+      window.location = d3.select("canvas").node().toDataURL()
+    })
+}
+
 </script>
+
+<div id=attrib>
+  Map tiles by <a href="http://stamen.com">Stamen Design</a>, 
+  under <a href="http://creativecommons.org/licenses/by/3.0">
+  CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, 
+  under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>. 
+  [<em><a href="https://github.com/bmount/anatine">source</a></em>]
+  <br>buildings are only available in San Francisco
+</div>
