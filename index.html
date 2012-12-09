@@ -209,9 +209,9 @@ var layer = map.append("div")
 
 camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
 camera.position.set(width/2, -height/2, 500); // gen
-camera.position.set(width/2, -1000, 320);
+camera.position.set(width/2, -1300, 200);
 camera.target = new THREE.Vector3(0, 0, 0);
-camera.rotation.x += Math.PI/4
+camera.rotation.x += 1
 renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
