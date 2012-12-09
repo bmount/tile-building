@@ -152,7 +152,7 @@ var home = home || [-122.412, 37.761012]
 var TILE_URL = tileUrl || "http://tile.stamen.com/toner/"
 //var TILE_URL = "http://tile.stamen.com/watercolor/"
 var BLDG_URL = "../../_design/bldgs/_view/bldgs?bbox={B}"
-var BIN_URL = "/tiles/"
+var BIN_URL = "tiles/"
 //var BIN_URL = "/_canvasback/tms/"
 
 var p = {x: 0, y: 0}
@@ -187,7 +187,7 @@ camera.position.set(width/2, -height/2, 500); // gen
 camera.position.set(width/2, -800, 220);
 camera.target = new THREE.Vector3(0, 0, 0);
 camera.rotation.x += Math.PI/4
-renderer = new THREE.WebGLRenderer();
+renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 //init scene
