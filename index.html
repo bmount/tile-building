@@ -18,6 +18,9 @@
 
 .findermap {
   position: absolute;
+  margin-top: 2em;
+  margin-left: 2em;
+  margin-bottom: 2em;
   overflow: hidden;
 }
 
@@ -59,8 +62,8 @@ function findermap () {
       .center(pos0)
       .scale(Math.pow(2,23));
 
-  var width = 500,
-      height = 500,
+  var width = 650,
+      height = 550,
       prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
 
   var tile = d3.geo.tile()
@@ -148,7 +151,8 @@ var home = home || [-122.412, 37.761012]
 var TILE_URL = tileUrl || "http://tile.stamen.com/toner/"
 //var TILE_URL = "http://tile.stamen.com/watercolor/"
 var BLDG_URL = "../../_design/bldgs/_view/bldgs?bbox={B}"
-var BIN_URL = "/_canvasback/tms/"
+var BIN_URL = "/sfbldgs/"
+//var BIN_URL = "/_canvasback/tms/"
 
 var p = {x: 0, y: 0}
 
@@ -179,7 +183,7 @@ var layer = map.append("div")
 
 camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
 camera.position.set(width/2, -height/2, 500); // gen
-camera.position.set(800, -800, 300);
+camera.position.set(width/2, -800, 220);
 camera.target = new THREE.Vector3(0, 0, 0);
 camera.rotation.x += Math.PI/4
 renderer = new THREE.WebGLRenderer();
@@ -202,7 +206,7 @@ scene.add(light2);
 heightGuess = { "17": 0 }
 
 function loadShorts (t, callback) {
-  var uri = BIN_URL + t[2] + '/' + t[0] + '/' + (t[1]-1) + '.ukb'
+  var uri = BIN_URL + t[2] + '-' + t[0] + '-' + (t[1]) + '/bldg'
     , buf = new XMLHttpRequest;
   buf.open("GET", uri, true);
   buf.responseType = 'arraybuffer'
@@ -263,7 +267,7 @@ d3.json(jsonUrl, function (err, footprints) {
     var footprintshape2d = new THREE.Shape(floorGeom)
     var footprintExtrudable = new THREE.ExtrudeGeometry(footprintshape2d, {
               // height given + constant by inspection
-              amount: e0.properties.height*1.3, height: 0,
+              amount: e0.properties.height*1.4, height: 0,
               bevelEnabled: false,
               material: 0, extrudeMaterial: 1
             })
@@ -335,25 +339,25 @@ function keydown(event){
 			event.preventDefault();
 			camera.position.x -= delta;
 			dsumx -= delta;
-      zoom.translate( proj( [dsumx, dsumy] ));
+      //zoom.translate( proj( [dsumx, dsumy] ));
 			break;
 		case 38 : // up arrow
 			event.preventDefault();
 			camera.position.y += delta;
 			dsumy += delta;
-      zoom.translate( proj( [dsumx, dsumy] ));
+      //zoom.translate( proj( [dsumx, dsumy] ));
 			break;
 		case 39 : // right arrow
 			//event.preventDefault();
 			camera.position.x += delta;
 			dsumx += delta;
-      zoom.translate( proj( [dsumx, dsumy] ));
+      //zoom.translate( proj( [dsumx, dsumy] ));
 			break;
 		case 40 : //down arrow
 			event.preventDefault();
 			camera.position.y -= delta;
 			dsumy -= delta;
-      zoom.translate( proj( [dsumx, dsumy] ));
+      //zoom.translate( proj( [dsumx, dsumy] ));
 			break;
 		case 190 : //
 			event.preventDefault();
