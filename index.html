@@ -375,11 +375,11 @@ function keydown(event){
 			camera.position.y -= delta;
       //zoom.translate( proj( [dsumx, dsumy] ));
 			break;
-		case 85: //
+		case 72: //
 			event.preventDefault();
 			camera.position.z += delta;
 			break;
-		case 68: // 188 : //
+		case 76: // 188 : //
 			event.preventDefault();
 			camera.position.z -= delta;
 			break;
@@ -449,8 +449,8 @@ return {proj:proj}
 }
 
 var uiFrag =  "use arrows, <br>" +
-              "u - up <br>" +
-              "d - down <br>" +
+              "h - higher <br>" +
+              "l - lower <br>" +
               "x-d ↺ x <br>" +
               "z-s ↺ z <br>" +
               "y-7 ↺ y <br><br>"
