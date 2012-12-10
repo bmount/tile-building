@@ -152,6 +152,8 @@ var finder = findermap()
 
 var debugObj;
 
+var viewer;
+
 d3.select("body")
     .append("button")
     .attr("class", "go")
@@ -162,7 +164,7 @@ d3.select("body")
       var mid = Math.floor(finder.tile().length/2)
       mid = finder.tile()[mid]
       mid = tileUtil().unprojected.apply(null, mid)[0]
-      gimmeBuildings(mid, 18)
+      viewer = gimmeBuildings(mid, 18)
       d3.select(this).remove()
       setInstructions();
     })
@@ -211,9 +213,9 @@ var layer = map.append("div")
 
 camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
 camera.position.set(width/2, -height/2, 500); // gen
-camera.position.set(width/2, -1300, 200);
+camera.position.set(width/2, -1300, 500);
 camera.target = new THREE.Vector3(0, 0, 0);
-camera.rotation.x += 1
+camera.rotation.x += .6
 renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -276,7 +278,6 @@ var meshes = []; // for later rotations etc
 function loadBuildings (jsonUrl, reproj) {
   var distort;
   if (reproj) {
-    console.log(home)
     var m = Math.cos(reproj[1]/180*Math.PI) / Math.cos(home[1]/180*Math.PI);
     distort = function (a) { return a*m };
     var proj = d3.geo.mercator()
@@ -367,7 +368,7 @@ function keydown(event){
 	event = event || window.event;
 	var keycode = event.keyCode;
 	switch(keycode){
-		case 37 : //left arrow
+    case 37 : //left arrow
 			event.preventDefault();
 			camera.position.x -= delta;
       //zoom.translate( proj( [dsumx, dsumy] ));
@@ -387,11 +388,11 @@ function keydown(event){
 			camera.position.y -= delta;
       //zoom.translate( proj( [dsumx, dsumy] ));
 			break;
-		case 85: //
+		case 72: //
 			event.preventDefault();
 			camera.position.z += delta;
 			break;
-		case 68: // 188 : //
+		case 76: // 188 : //
 			event.preventDefault();
 			camera.position.z -= delta;
 			break;
@@ -457,24 +458,27 @@ function keydown(event){
 }
 
 document.addEventListener('keydown',keydown,false);
-return {proj:proj}
+return {proj:proj, more: loadBuildings}
 }
 
 var uiFrag =  "use arrows, <br>" +
-              "u - up <br>" +
-              "d - down <br>" +
+              "h - higher <br>" +
+              "l - lower <br>" +
               "x-d ↺ x <br>" +
               "z-s ↺ z <br>" +
               "y-7 ↺ y <br><br>"
 
 function setInstructions () {
   d3.select("#attrib").remove();
-  d3.select("body").append("div")
+  var tips = d3.select("body").append("div")
     .attr("class", "uifrag").html(uiFrag)
     .style("left", function () { return (window.innerWidth - 150) + "px" })
-    .append("button").text("save").on("click", function () {
+  tips.append("button").text("save").on("click", function () {
       window.location = d3.select("canvas").node().toDataURL()
     })
+  //tips.append("button").text("more jakriborgs").on("click", function () {
+  //  viewer.more("places/jakriborg/metakaolinized.json", [13.134547, 55.674644])
+  //})
 }
 
 </script>
