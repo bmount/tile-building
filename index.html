@@ -177,6 +177,7 @@ var home = home || [-122.412, 37.761012]
 //var TILE_URL = "http://tile.stamen.com/toner-labels/"
 var TILE_URL = tileUrl || "http://tile.stamen.com/toner/"
 //var TILE_URL = "http://tile.stamen.com/watercolor/"
+var SAT_URL = "http://otile{H}.mqcdn.com/tiles/1.0.0/sat/"
 var BLDG_URL = "../../_design/bldgs/_view/bldgs?bbox={B}"
 var BIN_URL = "tiles/"
 //var BIN_URL = "/_canvasback/tms/"
@@ -332,7 +333,9 @@ function zoomed() {
       .attr("class", "tile")
       .attr("hidden", function(d) {
         //var b = bbox(d[0], d[1], d[2]);
-        floorTile(TILE_URL + d[2] + "/" + d[0] + "/" + d[1] + ".png", d, tile);
+        //floorTile(TILE_URL + d[2] + "/" + d[0] + "/" + d[1] + ".png", d, tile);
+        floorTile(SAT_URL.replace(/{H}/, [1,2,3,4][Math.floor(Math.random()*4)]) + 
+            d[2] + "/" + d[0] + "/" + d[1] + ".jpg", d, tile);
         var printer = unshorten(tile, scene, d) // not reusable between tiles
         loadShorts(d, printer)
         //loadBuildings(BLDG_URL.replace(/{B}/, b.toString()))

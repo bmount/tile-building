@@ -114,10 +114,9 @@ function findermap () {
 
   function zoomed() {
     var tiles = tile
-        .scale(zoom.scale())
-        .translate(zoom.translate())
+      .scale(zoom.scale())
+      .translate(zoom.translate())
         ();
-
     var image = layer
         .style(prefix + "transform", matrix3d(tiles.scale, tiles.translate))
       .selectAll(".findertile")
@@ -150,8 +149,6 @@ function findermap () {
 
 var finder = findermap()
 
-var debugObj;
-
 var viewer;
 
 d3.select("body")
@@ -160,11 +157,8 @@ d3.select("body")
     .html("b<br>u<br>i<br>l<br>d<br>i<br>n<br>g<br>s")
     .on("click", function (evt) {
       finder.map.remove()
-      console.log(finder);
-      var mid = Math.floor(finder.tile().length/2)
-      mid = finder.tile()[mid]
-      mid = tileUtil().unprojected.apply(null, mid)[0]
-      viewer = gimmeBuildings(mid, 18)
+      npos = d3.geo.mercator().scale(finder.ui.scale()).translate(finder.ui.translate())
+      viewer = gimmeBuildings(npos.invert([650/2,550/2]), 18)
       d3.select(this).remove()
       setInstructions();
     })
@@ -213,9 +207,9 @@ var layer = map.append("div")
 
 camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
 camera.position.set(width/2, -height/2, 500); // gen
-camera.position.set(width/2, -1300, 500);
+camera.position.set(width/2, -900, 700);
 camera.target = new THREE.Vector3(0, 0, 0);
-camera.rotation.x += .6
+camera.rotation.x += .5
 renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -271,7 +265,7 @@ function floorTile (url, d, t) {
 }
 
 // optionally, get per-tile bbox (argument is tms array [x,y,z])
-// var bbox = tileUtil().unprojected
+// var bbox = tileUtil().unprojectedBounds
 
 var meshes = []; // for later rotations etc
 

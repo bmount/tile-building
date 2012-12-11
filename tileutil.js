@@ -67,8 +67,10 @@ function tileUtil () {
     return [unproject(b[0],b[1]), unproject(b[2],b[3])];
   }
 
-  return { mercator: tileToMercatorBounds, 
-    unprojected: tileToUnprojectedBounds };
+  return { mercatorBounds: tileToMercatorBounds, 
+    unprojectedBounds: tileToUnprojectedBounds,
+    unproject: unproject,
+    mercator: project };
 }
 
 //exports.TileMercatorBounds = TileMercatorBounds

@@ -21,7 +21,6 @@ d3.geo.tile = function() {
 
     tiles.translate = origin;
     tiles.scale = k;
-
     return tiles;
   }
 
