@@ -353,6 +353,7 @@ var dsumx = 0, dsumy=0;
 function keydown(event){
 	var delta = 16;
 	event = event || window.event;
+  if (event.ctrlKey || event.altKey || event.metaKey) return;
 	var keycode = event.keyCode;
 	switch(keycode){
 		case 37 : //left arrow
