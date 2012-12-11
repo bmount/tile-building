@@ -1,4 +1,3 @@
-
 <!doctype html>
 
 <html>
@@ -14,7 +13,7 @@
   <script src=""></script>
   -->
 
-  <title> sf building view</title>
+  <title> how many jakriborgs is that </title>
 <style>
   body {
   font-family: Helvetica;
@@ -73,7 +72,8 @@
 
 <script>
 
-var pos0 = [-122.412, 37.761012]
+var pos0 = [-76.907768, 39.011456]
+
 
 function v2d(x,y,z) {
   return new THREE.Vector2(x,y);
@@ -114,10 +114,9 @@ function findermap () {
 
   function zoomed() {
     var tiles = tile
-        .scale(zoom.scale())
-        .translate(zoom.translate())
+      .scale(zoom.scale())
+      .translate(zoom.translate())
         ();
-
     var image = layer
         .style(prefix + "transform", matrix3d(tiles.scale, tiles.translate))
       .selectAll(".findertile")
@@ -150,7 +149,7 @@ function findermap () {
 
 var finder = findermap()
 
-var debugObj;
+var viewer;
 
 d3.select("body")
     .append("button")
@@ -158,11 +157,8 @@ d3.select("body")
     .html("b<br>u<br>i<br>l<br>d<br>i<br>n<br>g<br>s")
     .on("click", function (evt) {
       finder.map.remove()
-      console.log(finder);
-      var mid = Math.floor(finder.tile().length/2)
-      mid = finder.tile()[mid]
-      mid = tileUtil().unprojected.apply(null, mid)[0]
-      gimmeBuildings(mid, 18)
+      npos = d3.geo.mercator().scale(finder.ui.scale()).translate(finder.ui.translate())
+      viewer = gimmeBuildings(npos.invert([650/2,550/2]), 18)
       d3.select(this).remove()
       setInstructions();
     })
@@ -172,12 +168,12 @@ d3.select("body")
 function gimmeBuildings (home, z, tileUrl) {
 
 var home = home || [-122.412, 37.761012]
-  , z = z || 18
+  , z = z || 16
 //var home = [-122.410312, 37.761012]
 //var TILE_URL = "http://tile.stamen.com/toner-labels/"
 var TILE_URL = tileUrl || "http://tile.stamen.com/toner/"
-//var TILE_URL = "http://tile.stamen.com/watercolor/"
 var SAT_URL = "http://otile{H}.mqcdn.com/tiles/1.0.0/sat/"
+//var TILE_URL = "http://tile.stamen.com/watercolor/"
 var BLDG_URL = "../../_design/bldgs/_view/bldgs?bbox={B}"
 var BIN_URL = "tiles/"
 //var BIN_URL = "/_canvasback/tms/"
@@ -211,9 +207,9 @@ var layer = map.append("div")
 
 camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
 camera.position.set(width/2, -height/2, 500); // gen
-camera.position.set(width/2, -1300, 200);
+camera.position.set(width/2, -900, 700);
 camera.target = new THREE.Vector3(0, 0, 0);
-camera.rotation.x += 1
+camera.rotation.x += .5
 renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -242,8 +238,6 @@ function loadShorts (t, callback) {
           return;
         } else {
           callback(buf.response);
-          //console.log(buf.response.byteLength);
-          //d3.select(canvas).attr("class", "tile")
         }
       }
     }
@@ -271,43 +265,52 @@ function floorTile (url, d, t) {
 }
 
 // optionally, get per-tile bbox (argument is tms array [x,y,z])
-// var bbox = tileUtil().unprojected
+// var bbox = tileUtil().unprojectedBounds
 
 var meshes = []; // for later rotations etc
 
-function loadBuildings (jsonUrl) {
-d3.json(jsonUrl, function (err, footprints) {
-  if (err) { console.log(err); return; }
-  var footprints = footprints.features
-  var floorGeom;
-  footprints.forEach(function (e0, i0, c0) {
-    floorGeom = []
-    e0.geometry.coordinates[0].forEach(function (e1, i1, c1) {
-      var scrnCoord = proj(e1)
-      floorGeom.push(
-        v2d(scrnCoord[0], (-1)*scrnCoord[1])
-      )
-    })
+function loadBuildings (jsonUrl, reproj) {
+  var distort;
+  if (reproj) {
+    var m = Math.cos(reproj[1]/180*Math.PI) / Math.cos(home[1]/180*Math.PI);
+    distort = function (a) { return a*m };
+    var proj = d3.geo.mercator()
+          .center(reproj)
+          .scale(Math.pow(2,8+z))
+  }
+  else distort = Number;
+  d3.json(jsonUrl, function (err, footprints) {
+    if (err) { console.log(err); return; }
+    var footprints = footprints.features
+    var floorGeom;
+    footprints.forEach(function (e0, i0, c0) {
+      floorGeom = []
+      e0.geometry.coordinates[0].forEach(function (e1, i1, c1) {
+        var scrnCoord = proj(e1).map(distort)
+        floorGeom.push(
+          v2d(scrnCoord[0], (-1)*scrnCoord[1])
+        )
+      })
 
-    var footprintshape2d = new THREE.Shape(floorGeom)
-    var footprintExtrudable = new THREE.ExtrudeGeometry(footprintshape2d, {
-              // height given + constant by inspection
-              amount: e0.properties.height*1.4, height: 0,
-              bevelEnabled: false,
-              material: 0, extrudeMaterial: 1
-            })
-  var frontMaterial = new THREE.MeshLambertMaterial( { color: 0x3f3f3f, wireframe: false } );
-	var sideMaterial = new THREE.MeshLambertMaterial( { color: 0xb86b00, wireframe: false } );
-  var materialArray = [ frontMaterial, sideMaterial ];
-	footprintExtrudable.materials = materialArray;
-  var bldg = new THREE.Mesh( footprintExtrudable, new THREE.MeshFaceMaterial() );
-  scene.add(bldg);
-  meshes.push(bldg)
+      var footprintshape2d = new THREE.Shape(floorGeom)
+      var footprintExtrudable = new THREE.ExtrudeGeometry(footprintshape2d, {
+                // height given + constant by inspection
+                amount: e0.properties? e0.properties.height*1.4: 12, height: 0,
+                bevelEnabled: false,
+                material: 0, extrudeMaterial: 1
+              })
+      var frontMaterial = new THREE.MeshLambertMaterial( { color: 0x3f3f3f, wireframe: false } );
+      var sideMaterial = new THREE.MeshLambertMaterial( { color: 0xb86b00, wireframe: false } );
+      var materialArray = [ frontMaterial, sideMaterial ];
+      footprintExtrudable.materials = materialArray;
+      var bldg = new THREE.Mesh( footprintExtrudable, new THREE.MeshFaceMaterial() );
+      scene.add(bldg);
+      meshes.push(bldg)
+    })
   })
-})
 }
 
-//loadBuildings("parcelcollection_unprojected.json")
+loadBuildings("places/jakriborg/metakaolinized.json", [13.134547, 55.674644])
 
 d3.select("body").append("div").node().appendChild(renderer.domElement)
 
@@ -336,8 +339,8 @@ function zoomed() {
         //floorTile(TILE_URL + d[2] + "/" + d[0] + "/" + d[1] + ".png", d, tile);
         floorTile(SAT_URL.replace(/{H}/, [1,2,3,4][Math.floor(Math.random()*4)]) + 
             d[2] + "/" + d[0] + "/" + d[1] + ".jpg", d, tile);
-        var printer = unshorten(tile, scene, d) // not reusable between tiles
-        loadShorts(d, printer)
+        //var printer = unshorten(tile, scene, d) // not reusable between tiles
+        //loadShorts(d, printer)
         //loadBuildings(BLDG_URL.replace(/{B}/, b.toString()))
         return "";
       })
@@ -359,7 +362,7 @@ function keydown(event){
 	event = event || window.event;
 	var keycode = event.keyCode;
 	switch(keycode){
-		case 37 : //left arrow
+    case 37 : //left arrow
 			event.preventDefault();
 			camera.position.x -= delta;
       //zoom.translate( proj( [dsumx, dsumy] ));
@@ -449,7 +452,7 @@ function keydown(event){
 }
 
 document.addEventListener('keydown',keydown,false);
-return {proj:proj}
+return {proj:proj, more: loadBuildings}
 }
 
 var uiFrag =  "use arrows, <br>" +
@@ -461,21 +464,17 @@ var uiFrag =  "use arrows, <br>" +
 
 function setInstructions () {
   d3.select("#attrib").remove();
-  d3.select("body").append("div")
+  var tips = d3.select("body").append("div")
     .attr("class", "uifrag").html(uiFrag)
     .style("left", function () { return (window.innerWidth - 150) + "px" })
-    .append("button").text("save").on("click", function () {
+  tips.append("button").text("save").on("click", function () {
       window.location = d3.select("canvas").node().toDataURL()
     })
+  //tips.append("button").text("more jakriborgs").on("click", function () {
+  //  viewer.more("places/jakriborg/metakaolinized.json", [13.134547, 55.674644])
+  //})
 }
 
 </script>
 
-<div id=attrib>
-  Map tiles by <a href="http://stamen.com">Stamen Design</a>, 
-  under <a href="http://creativecommons.org/licenses/by/3.0">
-  CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, 
-  under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>. 
-  [<em><a href="https://github.com/bmount/anatine">source</a></em>]
-  <br>buildings are only available in San Francisco
-</div>
+
