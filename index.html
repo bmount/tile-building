@@ -133,7 +133,9 @@ function findermap () {
     image.enter().append("img")
         .attr("class", "findertile")
         .attr("src", function(d) {
-          return "http://tile.stamen.com/toner/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
+          return ("http://otile{S}.mqcdn.com/tiles/1.0.0/osm/"+d[2]+"/"+d[0]+"/"+d[1]+".jpg").replace(/{S}/,
+          Math.ceil(Math.random()*3))})
+          //return "http://tile.stamen.com/terrain/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
         .style("left", function(d) { return (d[0] << 8) + "px"; })
         .style("top", function(d) { return (d[1] << 8) + "px"; });
   }
@@ -538,4 +540,8 @@ function setInstructions () {
 
 </script>
 
-
+<div id=attrib>
+  Map tiles by <a href="http://mapquest.com">Mapquest</a>, 
+  Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, 
+  [<em><a href="https://github.com/bmount/anatine">source</a></em>]
+</div>
