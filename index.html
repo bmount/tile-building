@@ -378,7 +378,7 @@ function moveBldgs (d, u) {
   })
 }
 
-var modal = moveCamera
+var mode = moveCamera
 
 function rotateBuildingCollection (collection, angle, orig) {
   collection.forEach(function (bldg, i, c) {
@@ -399,22 +399,22 @@ function keydown(event){
 	event = event || window.event;
   if (event.ctrlKey || event.altKey || event.metaKey) return;
 	var keycode = event.keyCode
-  if (viewer.mode) modal = viewer.mode;
+  if (viewer.mode) mode = viewer.mode;
 	switch(keycode){
     case 37 : //left arrow
 			event.preventDefault();
-      modal(-delta, "x")
+      mode(-delta, "x")
 			break;
 		case 38 : // up arrow
 			event.preventDefault();
-      modal(delta, "y")
+      mode(delta, "y")
 			break;
 		case 39 : // right arrow
-      modal(delta, "x")
+      mode(delta, "x")
 			break;
 		case 40 : //down arrow
 			event.preventDefault();
-      modal(-delta, "y")
+      mode(-delta, "y")
 			break;
 		case 72: //
 			event.preventDefault();
@@ -484,7 +484,7 @@ function keydown(event){
 
 document.addEventListener('keydown',keydown,false);
 return {proj:proj, more: loadBuildings, 
-  mode:modal,
+  mode:mode,
   meshes: meshes,
   move: {bldgs: moveBldgs,
     tiles: moveFloor, camera: moveCamera} }
