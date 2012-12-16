@@ -1,3 +1,4 @@
+
 <!doctype html>
 
 <html>
@@ -58,13 +59,18 @@
   z-index: 1;
   width: 80px;
   font-size: 14px;
-  height: 160px;
+  /* height: 160px; */
   top: 25px;
   background: rgba(255,255,255,.8);
   padding: 10px;
   border-radius: 4px;
   border: 1px solid rgba(111,111,111,1);
 }
+
+button {
+  width: 100%;
+}
+
 </style>
 </head>
 
@@ -128,7 +134,9 @@ function findermap () {
     image.enter().append("img")
         .attr("class", "findertile")
         .attr("src", function(d) {
-          return "http://tile.stamen.com/toner/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
+          return ("http://otile{S}.mqcdn.com/tiles/1.0.0/osm/"+d[2]+"/"+d[0]+"/"+d[1]+".jpg").replace(/{S}/,
+          Math.ceil(Math.random()*3))})
+          //return "http://tile.stamen.com/terrain/" + d[2] + "/" + d[0] + "/" + d[1] + ".png"; })
         .style("left", function(d) { return (d[0] << 8) + "px"; })
         .style("top", function(d) { return (d[1] << 8) + "px"; });
   }
@@ -154,11 +162,11 @@ var viewer;
 d3.select("body")
     .append("button")
     .attr("class", "go")
-    .html("b<br>u<br>i<br>l<br>d<br>i<br>n<br>g<br>s")
+    .html("a<br>d<br>d<br> <br>J<br>a<br>k<br>r<br>i<br>b<br>o<br>r<br>g<br>s")
     .on("click", function (evt) {
       finder.map.remove()
       npos = d3.geo.mercator().scale(finder.ui.scale()).translate(finder.ui.translate())
-      viewer = gimmeBuildings(npos.invert([650/2,550/2]), 18)
+      viewer = gimmeBuildings(npos.invert([650/2-256,550/2-256]), 18)
       d3.select(this).remove()
       setInstructions();
     })
@@ -171,7 +179,7 @@ var home = home || [-122.412, 37.761012]
   , z = z || 16
 //var home = [-122.410312, 37.761012]
 //var TILE_URL = "http://tile.stamen.com/toner-labels/"
-var TILE_URL = tileUrl || "http://tile.stamen.com/toner/"
+var TILE_URL = tileUrl || "http://tile.stamen.com/terrain/"
 var SAT_URL = "http://otile{H}.mqcdn.com/tiles/1.0.0/sat/"
 //var TILE_URL = "http://tile.stamen.com/watercolor/"
 var BLDG_URL = "../../_design/bldgs/_view/bldgs?bbox={B}"
@@ -185,8 +193,8 @@ var proj = d3.geo.mercator()
     .center(home)
     .scale(Math.pow(2,(8+z)));
 
-var width = window.innerWidth*2,
-    height = window.innerHeight*2
+var width = window.innerWidth*3,
+    height = window.innerHeight*3
 
 if (width > height) width = height 
 else height = width;
@@ -267,9 +275,10 @@ function floorTile (url, d, t) {
 // optionally, get per-tile bbox (argument is tms array [x,y,z])
 // var bbox = tileUtil().unprojectedBounds
 
-var meshes = []; // for later rotations etc
+var meshes; // = []; // for later rotations etc
 
 function loadBuildings (jsonUrl, reproj) {
+  meshes = []
   var distort;
   if (reproj) {
     var m = Math.cos(reproj[1]/180*Math.PI) / Math.cos(home[1]/180*Math.PI);
@@ -288,14 +297,14 @@ function loadBuildings (jsonUrl, reproj) {
       e0.geometry.coordinates[0].forEach(function (e1, i1, c1) {
         var scrnCoord = proj(e1).map(distort)
         floorGeom.push(
-          v2d(scrnCoord[0], (-1)*scrnCoord[1])
+          v2d(scrnCoord[0] + 256, (-1)*scrnCoord[1] - 256)
         )
       })
 
       var footprintshape2d = new THREE.Shape(floorGeom)
       var footprintExtrudable = new THREE.ExtrudeGeometry(footprintshape2d, {
                 // height given + constant by inspection
-                amount: e0.properties? e0.properties.height*1.4: 12, height: 0,
+                amount: e0.properties? e0.properties.height*1.4: 14, height: 0,
                 bevelEnabled: false,
                 material: 0, extrudeMaterial: 1
               })
@@ -304,6 +313,7 @@ function loadBuildings (jsonUrl, reproj) {
       var materialArray = [ frontMaterial, sideMaterial ];
       footprintExtrudable.materials = materialArray;
       var bldg = new THREE.Mesh( footprintExtrudable, new THREE.MeshFaceMaterial() );
+      bldg.matrixWorldNeedsUpdate = true;
       scene.add(bldg);
       meshes.push(bldg)
     })
@@ -353,6 +363,34 @@ function animate() {
 }
 animate()
 
+function moveCamera (d, u) {
+  camera.position[u] += d;
+}
+
+function moveFloor (d, u) {
+  tileTextures.forEach(function (t) {
+    t.position[u] += d;
+  })
+}
+
+function moveBldgs (d, u) {
+  meshes.forEach(function (m) {
+    m.position[u] += d
+  })
+}
+
+var modal = moveCamera
+
+function rotateBuildingCollection (collection, angle, orig) {
+  collection.forEach(function (bldg, i, c) {
+    bldg.geometry.vertices.forEach(function (v) {
+      var r = Math.sqrt(Math.pow((v.x - orig.x), 2) + Math.pow((v.y - orig.y), 2))
+      //console.log(r, v.x, r*Math.cos(angle))
+      // = r * Math.cos(angle)
+      // = r * Math.sin(angle)
+    })
+  })
+}
 
 // console.log type position debug
 var dsumx = 0, dsumy=0;
@@ -360,27 +398,24 @@ var dsumx = 0, dsumy=0;
 function keydown(event){
 	var delta = 16;
 	event = event || window.event;
-	var keycode = event.keyCode;
+  if (event.ctrlKey || event.altKey || event.metaKey) return;
+	var keycode = event.keyCode
+  if (viewer.mode) modal = viewer.mode;
 	switch(keycode){
     case 37 : //left arrow
 			event.preventDefault();
-			camera.position.x -= delta;
-      //zoom.translate( proj( [dsumx, dsumy] ));
+      modal(-delta, "x")
 			break;
 		case 38 : // up arrow
 			event.preventDefault();
-			camera.position.y += delta;
-      //zoom.translate( proj( [dsumx, dsumy] ));
+      modal(delta, "y")
 			break;
 		case 39 : // right arrow
-			//event.preventDefault();
-			camera.position.x += delta;
-      //zoom.translate( proj( [dsumx, dsumy] ));
+      modal(delta, "x")
 			break;
 		case 40 : //down arrow
 			event.preventDefault();
-			camera.position.y -= delta;
-      //zoom.translate( proj( [dsumx, dsumy] ));
+      modal(-delta, "y")
 			break;
 		case 72: //
 			event.preventDefault();
@@ -414,33 +449,30 @@ function keydown(event){
 			event.preventDefault();
 			camera.rotation.z = camera.rotation.z - Math.PI/100;
 			break;
-      /* for repositioning tiles visually with: [, ], ;, and ' keys 
 		case 221 : // ]
 			event.preventDefault();
-      tileTextures.forEach(function (t) {
-        t.position.x += delta;
-      })
+      moveBldgs(delta, "x")
       dsumx+=delta
 			break;
 		case 219 : // [
 			event.preventDefault();
-      tileTextures.forEach(function (t) {
-        t.position.x -= delta;
-      })
+      moveBldgs(-delta, "x")
       dsumx-=delta;
 			break;
 		case 186 : // ;
 			event.preventDefault();
-      tileTextures.forEach(function (t) {
-        t.position.y += delta;
-      })
+      moveBldgs(delta, "y")
       dsumy+=delta
 			break;
 		case 222 : // '
 			event.preventDefault();
-      tileTextures.forEach(function (t) {
-        t.position.y -= delta;
-      })
+      moveBldgs(-delta, "y")
+      dsumy-=delta;
+      break;
+      /* TODO
+		case 82 : // '
+			event.preventDefault();
+      rotateBuildingCollection(meshes, Math.PI/20, meshes[0].geometry.vertices[0])
       dsumy-=delta;
       break;
       */
@@ -452,7 +484,11 @@ function keydown(event){
 }
 
 document.addEventListener('keydown',keydown,false);
-return {proj:proj, more: loadBuildings}
+return {proj:proj, more: loadBuildings, 
+  mode:modal,
+  meshes: meshes,
+  move: {bldgs: moveBldgs,
+    tiles: moveFloor, camera: moveCamera} }
 }
 
 var uiFrag =  "use arrows, <br>" +
@@ -460,16 +496,44 @@ var uiFrag =  "use arrows, <br>" +
               "l - lower <br>" +
               "x-d ↺ x <br>" +
               "z-s ↺ z <br>" +
-              "y-7 ↺ y <br><br>"
+              "y-7 ↺ y <br>";
+
+function uiAdjuster (size) {
+  d3.select("div").attr("class", "adjuster")
+  .append("svg").data([[0,1],[0,-1],[-1,0],[1,0]])
+  .enter().append("g")
+}
 
 function setInstructions () {
   d3.select("#attrib").remove();
   var tips = d3.select("body").append("div")
     .attr("class", "uifrag").html(uiFrag)
     .style("left", function () { return (window.innerWidth - 150) + "px" })
-  tips.append("button").text("save").on("click", function () {
+  var editmessage = tips.append("p").attr("id", "editmessage")
+  tips.append("button").text("save an exportable image").on("click", function () {
       window.location = d3.select("canvas").node().toDataURL()
     })
+  tips.append("button").text("move buildings").on("click", function () {
+    viewer.mode = viewer.move.bldgs;
+    editmessage.text("use the arrows to move the buildings")
+  })
+  tips.append("button").text("move camera").on("click", function () {
+    viewer.mode = viewer.move.camera;
+    editmessage.text("use the arrows to change camera perspective")
+  })
+  tips.append("button").text("move map imagery").on("click", function () {
+    viewer.mode = viewer.move.tiles;
+    editmessage.text("use the arrows to move the map imagery")
+  })
+  tips.append("button").text("more Jakriborgs!").on("click", function () {
+    viewer.more("places/jakriborg/metakaolinized.json", [13.134547, 55.674644])
+    viewer.mode = viewer.move.camera;
+    editmessage.text("use the arrows to move the map imagery")
+  })
+  //d3.xml('style/compass.svg', "image/svg+xml", function (err, svg) {
+  //  if (err) return;
+  //  tips.node().appendChild(svg.documentElement);
+  //})
   //tips.append("button").text("more jakriborgs").on("click", function () {
   //  viewer.more("places/jakriborg/metakaolinized.json", [13.134547, 55.674644])
   //})
@@ -477,4 +541,9 @@ function setInstructions () {
 
 </script>
 
+<div id=attrib>
+  Map tiles by <a href="http://mapquest.com">Mapquest</a>, 
+  Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, 
+  [<em><a href="https://github.com/bmount/anatine">source</a></em>]
+</div>
 
